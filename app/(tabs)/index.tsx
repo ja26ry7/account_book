@@ -1,75 +1,176 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+// import { useRealm } from '@/realm/RealmProvider';
+import { useRouter } from 'expo-router';
+import { Pressable, SectionList, StyleSheet, View } from 'react-native';
+// import { BSON } from 'realm';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import { MoneyWave } from '@/components/MoneyWave';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useState } from 'react';
+import { toCurrency } from '../../constants/format';
+import dayjs from '../../node_modules/dayjs/esm/index';
 
 export default function HomeScreen() {
+  const router = useRouter();
+  // const realm = useRealm();
+
+  const [balance, setBalance] = useState(0);
+  const [income, setIncome] = useState(0);
+  const [expense, setExpense] = useState(0);
+  const [dataSource, setDataSource] = useState([]);
+
+  const add = () => {
+    router.navigate('/addTransaction');
+  };
+
+  const deleteAll = () => {
+    //   realm.write(() => {
+    //     // 假設只刪除第一筆帳戶
+    //     const account = realm.objects<AccountSummary>('AccountSummary')[0];
+    //     if (!account) return;
+    //     // 先刪掉每一天的交易紀錄與項目
+    //     account.data.forEach((group: { data: any }) => {
+    //       // 先刪掉當日所有交易項目
+    //       realm.delete(group.data);
+    //     });
+    //     // 再刪掉所有 group
+    //     realm.delete(account.data);
+    //     // 最後刪除帳戶本身
+    //     realm.delete(account);
+    //   });
+  };
+
+  // const getList = useCallback(() => {
+  //   const summary = realm.objects<AccountSummary>('AccountSummary')[0];
+  //   console.log(summary);
+  //   setExpense(summary?.expense);
+  //   setIncome(summary?.income);
+  //   setBalance(summary?.balance);
+  //   // setDataSource(summary?.data);
+  // }, [realm]);
+
+  // useEffect(() => {
+  //   const hasAccount =
+  //     realm.objects<AccountSummary>('AccountSummary').length > 0;
+
+  //   if (!hasAccount) {
+  //     realm.write(() => {
+  //       realm.create('AccountSummary', {
+  //         _id: new BSON.ObjectId(),
+  //         income: 0,
+  //         expense: 0,
+  //         balance: 0,
+  //         data: [],
+  //       });
+  //     });
+  //     console.log('已建立初始帳戶');
+  //   } else {
+  //     getList();
+  //   }
+  // }, [getList, realm]);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+    <View style={{ flex: 1, padding: 10 }}>
+      <ThemedView
+        style={styles.cardContainer}
+        lightColor="#A1CEDC"
+        darkColor="#A1CEDC"
+      >
+        <View style={styles.titleContainer}>
+          <ThemedText type="subtitle">淨資產</ThemedText>
+          <MoneyWave />
+        </View>
+        <ThemedText type="title">{toCurrency(balance)}</ThemedText>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <ThemedText type="subtitle">收入：{toCurrency(income)}</ThemedText>
+          <ThemedText type="subtitle">|</ThemedText>
+          <ThemedText type="subtitle">支出：{toCurrency(expense)}</ThemedText>
+        </View>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+      <SectionList
+        sections={dataSource}
+        keyExtractor={(item, index) => item.title + index}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <View>
+              <ThemedText type="defaultSemiBold">{item.title}</ThemedText>
+              <ThemedText type="remark">{item.remark}</ThemedText>
+            </View>
+            <ThemedText>
+              {item.type === 'income' ? '+' : '-'}${toCurrency(item.amount)}
+            </ThemedText>
+          </View>
+        )}
+        ItemSeparatorComponent={() => (
+          <View style={{ height: 1, backgroundColor: 'lightgray' }} />
+        )}
+        renderSectionHeader={({ section: { date } }) => (
+          <ThemedText type="subtitle">
+            {dayjs(date).format('M月D日 dddd')}
+          </ThemedText>
+        )}
+      />
+
+      <Pressable onPress={deleteAll}>
+        <ThemedView
+          style={[styles.add, { top: -250 }]}
+          lightColor="#A1CEDC"
+          darkColor="#1D3D47"
+        >
+          <ThemedText type="title">-</ThemedText>
+        </ThemedView>
+      </Pressable>
+      <Pressable onPress={add}>
+        <ThemedView style={styles.add} lightColor="#A1CEDC" darkColor="#1D3D47">
+          <ThemedText type="title">+</ThemedText>
+        </ThemedView>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  cardContainer: {
+    alignItems: 'center',
+    borderRadius: 10,
+    padding: 20,
+    marginVertical: 10,
+  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  stepContainer: {
+  itemContainer: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 8,
-    marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    paddingVertical: 5,
+  },
+
+  add: {
+    width: 60,
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
     position: 'absolute',
+    top: -180,
+    right: 10,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.28,
+    shadowRadius: 7.0,
+    elevation: 10,
+    zIndex: 99999,
   },
 });
