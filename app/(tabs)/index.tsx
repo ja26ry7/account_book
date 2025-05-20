@@ -1,44 +1,119 @@
 // import { useRealm } from '@/realm/RealmProvider';
 import { useRouter } from 'expo-router';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
-// import { BSON } from 'realm';
+// import Realm from 'realm';
 
 import { MoneyWave } from '@/components/MoneyWave';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useState } from 'react';
+// import { SCHEMA_VERSION, schemas } from '@/realm/schemas';
+// import { AccountSummary } from '@/realm/types';
+import { useEffect, useState } from 'react';
 import { toCurrency } from '../../constants/format';
 import dayjs from '../../node_modules/dayjs/esm/index';
 
 export default function HomeScreen() {
   const router = useRouter();
   // const realm = useRealm();
+  // const realm = Realm.open({
+  //   schema: schemas,
+  //   schemaVersion: SCHEMA_VERSION,
+  // });
+  interface TransactionItem {
+    title: string;
+    remark: string;
+    amount: number;
+    icon: string;
+    type: string;
+  }
 
-  const [balance, setBalance] = useState(0);
-  const [income, setIncome] = useState(0);
-  const [expense, setExpense] = useState(0);
-  const [dataSource, setDataSource] = useState([]);
+  interface TransactionGroup {
+    date: string;
+    data: TransactionItem[];
+  }
+
+  const [balance, setBalance] = useState<number>(0);
+  const [income, setIncome] = useState<number>(0);
+  const [expense, setExpense] = useState<number>(0);
+  const [dataSource, setDataSource] = useState<TransactionGroup[]>([]);
 
   const add = () => {
     router.navigate('/addTransaction');
   };
 
   const deleteAll = () => {
-    //   realm.write(() => {
-    //     // 假設只刪除第一筆帳戶
-    //     const account = realm.objects<AccountSummary>('AccountSummary')[0];
-    //     if (!account) return;
-    //     // 先刪掉每一天的交易紀錄與項目
-    //     account.data.forEach((group: { data: any }) => {
-    //       // 先刪掉當日所有交易項目
-    //       realm.delete(group.data);
-    //     });
-    //     // 再刪掉所有 group
-    //     realm.delete(account.data);
-    //     // 最後刪除帳戶本身
-    //     realm.delete(account);
+    console.log('bbb');
+    // realm.write(() => {
+    //   // 假設只刪除第一筆帳戶
+    //   const account = realm.objects<AccountSummary>('AccountSummary')[0];
+    //   if (!account) return;
+    //   // 先刪掉每一天的交易紀錄與項目
+    //   account.data.forEach((group: { data: any }) => {
+    //     // 先刪掉當日所有交易項目
+    //     realm.delete(group.data);
     //   });
+    //   // 再刪掉所有 group
+    //   realm.delete(account.data);
+    //   // 最後刪除帳戶本身
+    //   realm.delete(account);
+    // });
   };
+
+  useEffect(() => {
+    const getList = () => {
+      const summary = {
+        balance: 1000,
+        income: 2000,
+        expense: 1000,
+        data: [
+          {
+            date: '2025-05-12T05:46:10.191Z',
+            data: [
+              {
+                title: '飲食',
+                remark: '一幕日',
+                amount: 20,
+                icon: 'food',
+                type: 'expense',
+              },
+              {
+                title: '飲食',
+                remark: '直火人',
+                amount: 100,
+                icon: 'food',
+                type: 'expense',
+              },
+            ],
+          },
+          {
+            date: '2025-05-13T05:46:10.191Z',
+            data: [
+              {
+                title: '飲食',
+                remark: '一幕日',
+                amount: 30,
+                icon: 'food',
+                type: 'expense',
+              },
+              {
+                title: '飲食',
+                remark: '直火人',
+                amount: 100,
+                icon: 'food',
+                type: 'expense',
+              },
+            ],
+          },
+        ],
+      };
+      setExpense(summary?.expense);
+      setIncome(summary?.income);
+      setBalance(summary?.balance);
+      setDataSource(summary?.data);
+    };
+
+    getList();
+  }, []);
 
   // const getList = useCallback(() => {
   //   const summary = realm.objects<AccountSummary>('AccountSummary')[0];
@@ -46,7 +121,7 @@ export default function HomeScreen() {
   //   setExpense(summary?.expense);
   //   setIncome(summary?.income);
   //   setBalance(summary?.balance);
-  //   // setDataSource(summary?.data);
+  //   setDataSource(summary?.data);
   // }, [realm]);
 
   // useEffect(() => {
@@ -110,22 +185,33 @@ export default function HomeScreen() {
             {dayjs(date).format('M月D日 dddd')}
           </ThemedText>
         )}
+        ListEmptyComponent={() => (
+          <ThemedView
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <ThemedText>無資料</ThemedText>
+          </ThemedView>
+        )}
       />
 
-      <Pressable onPress={deleteAll}>
-        <ThemedView
-          style={[styles.add, { top: -250 }]}
-          lightColor="#A1CEDC"
-          darkColor="#1D3D47"
-        >
+      <ThemedView
+        style={[styles.add, { bottom: 100 }]}
+        lightColor="#A1CEDC"
+        darkColor="#1D3D47"
+      >
+        <Pressable onPress={deleteAll}>
           <ThemedText type="title">-</ThemedText>
-        </ThemedView>
-      </Pressable>
-      <Pressable onPress={add}>
-        <ThemedView style={styles.add} lightColor="#A1CEDC" darkColor="#1D3D47">
+        </Pressable>
+      </ThemedView>
+
+      <ThemedView style={styles.add} lightColor="#A1CEDC" darkColor="#1D3D47">
+        <Pressable onPress={add}>
           <ThemedText type="title">+</ThemedText>
-        </ThemedView>
-      </Pressable>
+        </Pressable>
+      </ThemedView>
     </View>
   );
 }
@@ -162,7 +248,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: '50%',
     position: 'absolute',
-    top: -180,
+    bottom: 20,
     right: 10,
     shadowOffset: {
       width: 0,

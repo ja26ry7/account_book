@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   Button,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -115,7 +116,20 @@ const AddTransaction = () => {
         />
       )}
 
-      <Button title="新增" onPress={handleAdd} />
+      <Pressable
+        style={({ pressed }) => [
+          {
+            flex: 1,
+            marginHorizontal: 30,
+            paddingVertical: 10,
+            alignItems: 'center',
+            backgroundColor: pressed ? '#A1CEDC' : '#1D3D47',
+          },
+        ]}
+        onPress={handleAdd}
+      >
+        <Text>新增</Text>
+      </Pressable>
     </View>
   );
 };
