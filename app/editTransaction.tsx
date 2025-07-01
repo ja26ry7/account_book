@@ -2,29 +2,58 @@ import { DropdownItem, Option } from '@/components/DropdownItem';
 import { ThemedInput } from '@/components/ThemedInput';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { addTransaction, getAllIcons } from '@/db/db';
+import { getAllIcons, updateTransaction } from '@/db/db';
 import { IconItem } from '@/db/type';
 import { useColorScheme } from '@/hooks/useColorScheme.web';
 import { Button, Picker } from '@expo/ui/swift-ui';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-const AddTransaction = () => {
+const EditTransaction = () => {
   // const realm = useRealm();
   const colorScheme = useColorScheme() ?? 'light';
   const router = useRouter();
 
-  const [type, setType] = useState<'income' | 'expense'>('expense');
-  const [amount, setAmount] = useState('');
-  const [remark, setRemark] = useState('');
-  const [icon, setIcon] = useState<Option>({ label: '', value: 'link' });
-  const [date, setDate] = useState(new Date());
+  const {
+    originalType,
+    originalAmount,
+    originalRemark,
+    originalTitle,
+    originalIcon,
+    originalDate,
+    id,
+  } = useLocalSearchParams();
+
+  const toStringParam = (param: string | string[] | undefined): string => {
+    if (Array.isArray(param)) return param[0] ?? '';
+    return param ?? '';
+  };
+  const parseToDate = (input: unknown): Date => {
+    console.log(input);
+    if (input instanceof Date) return input;
+    if (typeof input === 'string' && !isNaN(Date.parse(input)))
+      return new Date(input);
+    return new Date();
+  };
+
+  const [type, setType] = useState<'income' | 'expense'>(
+    originalType === 'income' ? 'income' : 'expense'
+  );
+  const [amount, setAmount] = useState(toStringParam(originalAmount));
+  const [remark, setRemark] = useState(toStringParam(originalRemark));
+  const [icon, setIcon] = useState<Option>({
+    label: toStringParam(originalTitle),
+    value: (toStringParam(originalIcon) || 'link') as Option['value'],
+  });
+
+  const [date, setDate] = useState<Date>(parseToDate(originalDate));
+  // const [time, setTime] = useState<Date>(parseToDate(originalDate));
   const [iconList, setIconList] = useState<IconItem[]>();
 
-  const handleAdd = async () => {
+  const handleEdit = async () => {
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
       alert('請輸入有效金額');
@@ -35,7 +64,8 @@ const AddTransaction = () => {
       return;
     }
 
-    await addTransaction({
+    await updateTransaction({
+      id: Number(id),
       type,
       title: icon.label,
       amount: numericAmount,
@@ -147,9 +177,9 @@ const AddTransaction = () => {
             backgroundColor: pressed ? '#6288e0' : '#2463f6',
           },
         ]}
-        onPress={handleAdd}
+        onPress={handleEdit}
       >
-        <ThemedText lightColor="white">新增</ThemedText>
+        <ThemedText lightColor="white">儲存</ThemedText>
       </Pressable>
     </ThemedView>
   );
@@ -164,4 +194,4 @@ const styles = StyleSheet.create({
   button: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });
 
-export default AddTransaction;
+export default EditTransaction;

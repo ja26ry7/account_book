@@ -22,3 +22,11 @@ export interface AccountSummary extends Realm.Object {
     balance: number;
     data: Realm.List<TransactionGroup>;
 }
+
+export type IconSource = 'default' | 'custom';
+
+export interface IconItem {
+    id?: number; // 自動遞增主鍵
+    label: string;
+    icon: string;
+}

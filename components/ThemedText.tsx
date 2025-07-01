@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     color: '#0a7ea4',
   },
   remark: {
-    lineHeight: 25,
     fontSize: 12,
+    color: 'gray',
   },
 });
