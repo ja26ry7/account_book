@@ -36,10 +36,6 @@ export default function RootLayout() {
         />
         <Stack.Screen name="+not-found" />
         <Stack.Screen
-          name="addTransaction"
-          options={{ headerTitle: '新項目' }}
-        />
-        <Stack.Screen
           name="editTransaction"
           options={{ headerTitle: '編輯項目' }}
         />

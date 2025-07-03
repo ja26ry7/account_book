@@ -41,12 +41,11 @@ export default function HomeScreen() {
   const [dataSource, setDataSource] = useState<TransactionGroup[]>([]);
 
   const add = () => {
-    router.navigate('/addTransaction');
+    router.navigate('/editTransaction');
   };
 
   const getList = async () => {
     const txs = await getTransactions();
-    // console.log(txs);
     setDataSource(txs.data as any);
     setBalance(txs.balance);
     setIncome(txs.income);
@@ -142,7 +141,7 @@ export default function HomeScreen() {
       <ThemedView
         style={styles.cardContainer}
         lightColor="#A1CEDC"
-        darkColor="#A1CEDC"
+        darkColor="#1D3D47"
       >
         <View style={styles.titleContainer}>
           <ThemedText type="subtitle">淨資產</ThemedText>
@@ -150,9 +149,9 @@ export default function HomeScreen() {
         </View>
         <ThemedText type="title">{toCurrency(balance)}</ThemedText>
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <ThemedText type="subtitle">收入：{toCurrency(income)}</ThemedText>
+          <ThemedText type="subtitle">支出：-{toCurrency(expense)}</ThemedText>
           <ThemedText type="subtitle">|</ThemedText>
-          <ThemedText type="subtitle">支出：{toCurrency(expense)}</ThemedText>
+          <ThemedText type="subtitle">收入：{toCurrency(income)}</ThemedText>
         </View>
       </ThemedView>
 
@@ -164,7 +163,12 @@ export default function HomeScreen() {
           <ListItem item={item} deleteItem={deleteItem} />
         )}
         ItemSeparatorComponent={() => (
-          <View style={{ height: 1, backgroundColor: 'lightgray' }} />
+          <View
+            style={{
+              height: 1,
+              backgroundColor: Colors[colorScheme].line,
+            }}
+          />
         )}
         renderSectionHeader={({ section: { date } }) => (
           <ThemedText
@@ -224,7 +228,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    paddingVertical: 5,
+    paddingVertical: 3,
     minHeight: 60,
   },
   add: {

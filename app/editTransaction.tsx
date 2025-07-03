@@ -2,7 +2,13 @@ import { DropdownItem, Option } from '@/components/DropdownItem';
 import { ThemedInput } from '@/components/ThemedInput';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { getAllIcons, updateTransaction } from '@/db/db';
+import { Colors } from '@/constants/Colors';
+import {
+  addTransaction,
+  deleteTransaction,
+  getAllIcons,
+  updateTransaction,
+} from '@/db/db';
 import { IconItem } from '@/db/type';
 import { useColorScheme } from '@/hooks/useColorScheme.web';
 import { Button, Picker } from '@expo/ui/swift-ui';
@@ -10,7 +16,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 const EditTransaction = () => {
   // const realm = useRealm();
@@ -32,7 +38,6 @@ const EditTransaction = () => {
     return param ?? '';
   };
   const parseToDate = (input: unknown): Date => {
-    console.log(input);
     if (input instanceof Date) return input;
     if (typeof input === 'string' && !isNaN(Date.parse(input)))
       return new Date(input);
@@ -50,7 +55,6 @@ const EditTransaction = () => {
   });
 
   const [date, setDate] = useState<Date>(parseToDate(originalDate));
-  // const [time, setTime] = useState<Date>(parseToDate(originalDate));
   const [iconList, setIconList] = useState<IconItem[]>();
 
   const handleEdit = async () => {
@@ -64,16 +68,40 @@ const EditTransaction = () => {
       return;
     }
 
-    await updateTransaction({
-      id: Number(id),
+    const data = {
       type,
       title: icon.label,
       amount: numericAmount,
       remark,
       icon: icon.value,
       date,
-    });
+    };
+
+    if (id) {
+      await updateTransaction({
+        id: Number(id),
+        ...data,
+      });
+    } else {
+      await addTransaction(data);
+    }
+
     router.back();
+  };
+
+  const handleDelete = () => {
+    Alert.alert('確認', '確認要刪除？', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '刪除',
+        onPress: () => {
+          deleteTransaction(Number(id)).then(() => {
+            router.back();
+          });
+        },
+        style: 'destructive',
+      },
+    ]);
   };
 
   type TypeItem = {
@@ -110,7 +138,7 @@ const EditTransaction = () => {
       />
       <ThemedText>金額：</ThemedText>
       <ThemedInput
-        value={amount}
+        value={amount.replace(/[^0-9]/g, '')}
         onChangeText={setAmount}
         keyboardType="numeric"
         style={styles.input}
@@ -139,8 +167,14 @@ const EditTransaction = () => {
         style={styles.input}
       />
 
-      <ThemedText>日期：</ThemedText>
-      <View style={{ flexDirection: 'row' }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          marginVertical: 10,
+          alignItems: 'center',
+        }}
+      >
+        <ThemedText>日期：</ThemedText>
         <DateTimePicker
           value={date}
           mode="date"
@@ -150,7 +184,6 @@ const EditTransaction = () => {
           onChange={(_, selectedDate) => {
             if (selectedDate) setDate(selectedDate);
           }}
-          style={{ marginVertical: 10 }}
         />
 
         <DateTimePicker
@@ -162,25 +195,42 @@ const EditTransaction = () => {
           onChange={(_, selectedTime) => {
             if (selectedTime) setDate(selectedTime);
           }}
-          style={{ marginVertical: 10 }}
         />
       </View>
       <Pressable
         style={({ pressed }) => [
           {
-            marginHorizontal: 30,
-            marginVertical: 20,
+            marginTop: 20,
             paddingVertical: 10,
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 10,
-            backgroundColor: pressed ? '#6288e0' : '#2463f6',
+            backgroundColor: Colors[colorScheme].button,
+            opacity: pressed ? 0.8 : 1,
           },
         ]}
         onPress={handleEdit}
       >
-        <ThemedText lightColor="white">儲存</ThemedText>
+        <ThemedText lightColor="white">{id ? '儲存' : '新增'}</ThemedText>
       </Pressable>
+      {id && (
+        <Pressable
+          style={({ pressed }) => [
+            {
+              marginTop: 20,
+              paddingVertical: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 10,
+              backgroundColor: 'red',
+              opacity: pressed ? 0.8 : 1,
+            },
+          ]}
+          onPress={handleDelete}
+        >
+          <ThemedText lightColor="white">刪除</ThemedText>
+        </Pressable>
+      )}
     </ThemedView>
   );
 };

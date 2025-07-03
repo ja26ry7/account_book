@@ -56,7 +56,9 @@ export const DropdownItem = ({
         styles.placeholderStyle,
         { color: Colors[colorScheme].text },
       ]}
-      containerStyle={{ backgroundColor: Colors[colorScheme].cardBackground }}
+      containerStyle={{
+        backgroundColor: Colors[colorScheme].cardBackground,
+      }}
       selectedTextStyle={[
         styles.selectedTextStyle,
         { color: Colors[colorScheme].text },

@@ -31,3 +31,11 @@ export interface IconItem {
     icon: string;
     source: IconSource;
 }
+
+export interface CategoryStat {
+    icon: string;
+    label: string;
+    amount: number;
+    count: number;
+}
+

@@ -120,7 +120,8 @@ const AddCategory = () => {
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 10,
-            backgroundColor: pressed ? '#6288e0' : '#2463f6',
+            backgroundColor: '#2463f6',
+            opacity: pressed ? 0.8 : 1,
           },
         ]}
         onPress={handleAdd}

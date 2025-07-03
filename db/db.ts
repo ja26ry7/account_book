@@ -1,7 +1,7 @@
 // db.ts
 import dayjs from 'dayjs/esm';
 import { openDatabaseAsync } from 'expo-sqlite';
-import { AccountSummary, IconItem, Transaction } from './type';
+import { AccountSummary, CategoryStat, IconItem, Transaction } from './type';
 
 const db = openDatabaseAsync("account.db");
 
@@ -149,3 +149,27 @@ export const getAllIcons = async (): Promise<IconItem[]> => {
 export const deleteIcon = async (id: number): Promise<void> => {
     await (await db).runAsync(`DELETE FROM icons WHERE id = ?`, [id]);
 };
+
+export const getStateisticsByCategory = async (type: 'income' | 'expense'): Promise<CategoryStat[]> => {
+    const dbInstance = await db;
+
+    const result = await dbInstance.getAllAsync<{
+        icon: string;
+        label: string;
+        amount: number;
+        count: number;
+    }>(`
+      SELECT
+        t.icon,
+        i.label,
+        SUM(t.amount) AS amount,
+        COUNT(*) AS count
+      FROM transactions t
+      LEFT JOIN icons i ON t.icon = i.icon
+      WHERE t.type = ?
+      GROUP BY t.icon
+      ORDER BY amount DESC
+    `, [type]);
+
+    return result;
+}
