@@ -10,17 +10,16 @@ import {
   updateTransaction,
 } from '@/db/db';
 import { IconItem } from '@/db/type';
-import { useColorScheme } from '@/hooks/useColorScheme.web';
 import { Button, Picker } from '@expo/ui/swift-ui';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useAppContext } from './AppProvider';
 
 const EditTransaction = () => {
-  // const realm = useRealm();
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useAppContext();
   const router = useRouter();
 
   const {
@@ -140,6 +139,7 @@ const EditTransaction = () => {
       <ThemedInput
         value={amount.replace(/[^0-9]/g, '')}
         onChangeText={setAmount}
+        placeholder="請輸入金額"
         keyboardType="numeric"
         style={styles.input}
       />
@@ -164,6 +164,7 @@ const EditTransaction = () => {
       <ThemedInput
         value={remark}
         onChangeText={setRemark}
+        placeholder="請輸入備註"
         style={styles.input}
       />
 
@@ -205,7 +206,7 @@ const EditTransaction = () => {
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 10,
-            backgroundColor: Colors[colorScheme].button,
+            backgroundColor: Colors[theme].button,
             opacity: pressed ? 0.8 : 1,
           },
         ]}

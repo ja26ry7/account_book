@@ -15,3 +15,8 @@ export const toCurrency = (amountStr: string | number | string[] | null, separat
     }
     return amountStr;
 };
+
+export function formatCurrency(amount: number): string {
+
+    return amount < 0 ? `-$${toCurrency(Math.abs(amount))}` : `$${toCurrency(amount)}`;
+}

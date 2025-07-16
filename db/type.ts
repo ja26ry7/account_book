@@ -14,6 +14,7 @@ export interface Transaction {
 
 export interface TransactionGroup {
     date: string;
+    dailyBalance: number;
     data: Transaction[];
 }
 

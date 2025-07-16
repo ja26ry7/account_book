@@ -1,26 +1,28 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, Pressable } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useAppContext } from '../AppProvider';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useAppContext();
+  const router = useRouter();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
+        tabBarActiveTintColor: Colors[theme].tint,
         headerShown: true,
         headerStyle: {
-          backgroundColor: Colors[colorScheme].cardBackground,
+          backgroundColor: Colors[theme].cardBackground,
         },
         sceneStyle: {
-          backgroundColor: Colors[colorScheme].background,
+          backgroundColor: Colors[theme].background,
         },
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -38,8 +40,27 @@ export default function TabLayout() {
         options={{
           title: '帳本',
           headerTitle: '帳本',
+          headerRight: () => (
+            <Pressable
+              onPress={() => {
+                router.navigate('/setting');
+              }}
+              style={({ pressed }) => [
+                {
+                  opacity: pressed ? 0.5 : 1,
+                },
+              ]}
+            >
+              <Ionicons
+                name={'settings-outline'}
+                color={Colors[theme].icon}
+                size={25}
+                style={{ marginHorizontal: 20 }}
+              />
+            </Pressable>
+          ),
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+            <IconSymbol size={28} name="book" color={color} />
           ),
         }}
       />

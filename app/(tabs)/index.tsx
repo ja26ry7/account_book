@@ -10,30 +10,31 @@ import { ThemedView } from '@/components/ThemedView';
 
 import { Colors } from '@/constants/Colors';
 import { deleteTransaction, getTransactions, initDB } from '@/db/db';
-import { useColorScheme } from '@/hooks/useColorScheme.web';
+import { Transaction, TransactionGroup } from '@/db/type';
 import { useCallback, useEffect, useState } from 'react';
-import { toCurrency } from '../../constants/format';
+import { formatCurrency, toCurrency } from '../../constants/format';
 import dayjs from '../../node_modules/dayjs/esm/index';
+import { useAppContext } from '../AppProvider';
 
 export default function HomeScreen() {
   const router = useRouter();
   dayjs.locale('zh-tw');
   dayjs.extend(LocalizedFormat);
-  const colorScheme = useColorScheme() ?? 'light';
-  interface TransactionItem {
-    id: number;
-    title: string;
-    remark: string;
-    amount: number;
-    icon: string;
-    type: string;
-    date: string;
-  }
+  const { theme } = useAppContext();
+  // interface TransactionItem {
+  //   id: number;
+  //   title: string;
+  //   remark: string;
+  //   amount: number;
+  //   icon: string;
+  //   type: string;
+  //   date: string;
+  // }
 
-  interface TransactionGroup {
-    date: string;
-    data: TransactionItem[];
-  }
+  // interface TransactionGroup {
+  //   date: string;
+  //   data: TransactionItem[];
+  // }
 
   const [balance, setBalance] = useState<number>(0);
   const [income, setIncome] = useState<number>(0);
@@ -67,7 +68,7 @@ export default function HomeScreen() {
     ]);
   };
   interface ListItemProps {
-    item: TransactionItem;
+    item: Transaction;
     deleteItem: (id: number) => void;
   }
 
@@ -88,7 +89,7 @@ export default function HomeScreen() {
               originalRemark: item.remark,
               originalTitle: item.title,
               originalIcon: item.icon,
-              originalDate: item.date,
+              originalDate: item.date.toString(),
               id: item.id,
             },
           });
@@ -97,18 +98,22 @@ export default function HomeScreen() {
         <Ionicons
           name={item.icon as any}
           size={20}
-          color={Colors[colorScheme].icon}
+          color={Colors[theme].icon}
         />
         <View style={{ justifyContent: 'center' }}>
           <ThemedText type="defaultSemiBold">{item.title}</ThemedText>
           {item.remark && <ThemedText type="remark">{item.remark}</ThemedText>}
         </View>
         <View style={{ flex: 1 }} />
-        <ThemedText>
-          {item.type === 'income' ? '+' : '-'}${toCurrency(item.amount)}
-        </ThemedText>
-        {showTrash && (
-          <Pressable onPress={() => deleteItem(item.id)}>
+        {item.type === 'income' ? (
+          <ThemedText lightColor="#009100" darkColor="#28FF28">
+            +${toCurrency(item.amount)}
+          </ThemedText>
+        ) : (
+          <ThemedText>-${toCurrency(item.amount)}</ThemedText>
+        )}
+        {showTrash && item.id !== undefined && (
+          <Pressable onPress={() => deleteItem(item.id!)}>
             <Entypo name="trash" size={24} color="red" />
           </Pressable>
         )}
@@ -144,12 +149,12 @@ export default function HomeScreen() {
         darkColor="#1D3D47"
       >
         <View style={styles.titleContainer}>
-          <ThemedText type="subtitle">淨資產</ThemedText>
           <MoneyWave />
+          <ThemedText type="title">{toCurrency(balance)}</ThemedText>
         </View>
-        <ThemedText type="title">{toCurrency(balance)}</ThemedText>
+
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <ThemedText type="subtitle">支出：-{toCurrency(expense)}</ThemedText>
+          <ThemedText type="subtitle">支出：{toCurrency(expense)}</ThemedText>
           <ThemedText type="subtitle">|</ThemedText>
           <ThemedText type="subtitle">收入：{toCurrency(income)}</ThemedText>
         </View>
@@ -166,24 +171,40 @@ export default function HomeScreen() {
           <View
             style={{
               height: 1,
-              backgroundColor: Colors[colorScheme].line,
+              backgroundColor: Colors[theme].line,
             }}
           />
         )}
-        renderSectionHeader={({ section: { date } }) => (
-          <ThemedText
-            type="subtitle"
-            lightColor="#5b33ff"
-            darkColor="#8a75e1"
+        renderSectionHeader={({ section: { date, dailyBalance } }) => (
+          <ThemedView
             style={{
-              paddingVertical: 5,
-              backgroundColor: colorScheme === 'light' ? '#ffffff' : '#1e1e1e',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: theme === 'light' ? '#ffffff' : '#1e1e1e',
+              paddingVertical: 8,
             }}
           >
-            {dayjs(date).format(
-              isNotThisYear(date) ? 'YYYY年M月D日 dddd' : 'M月D日 dddd'
-            )}
-          </ThemedText>
+            <ThemedText
+              type="subtitle"
+              lightColor="#5b33ff"
+              darkColor="#8a75e1"
+            >
+              {dayjs(date).format(
+                isNotThisYear(date) ? 'YYYY年M月D日 dddd' : 'M月D日 dddd'
+              )}
+            </ThemedText>
+            <ThemedText
+              style={{
+                backgroundColor: 'rgba(109, 77, 235, 0.2)',
+                paddingHorizontal: 5,
+                borderRadius: 5,
+                fontSize: 18,
+              }}
+            >
+              {formatCurrency(dailyBalance)}
+            </ThemedText>
+          </ThemedView>
         )}
         ListEmptyComponent={() => (
           <ThemedView
@@ -212,6 +233,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     margin: 10,
+    gap: 5,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -228,8 +250,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    paddingVertical: 3,
-    minHeight: 60,
+    paddingVertical: 5,
+    minHeight: 50,
   },
   add: {
     width: 60,

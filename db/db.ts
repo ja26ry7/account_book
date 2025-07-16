@@ -65,7 +65,7 @@ export const getTransactions = async (): Promise<AccountSummary> => {
     const result = await dbInstance.getAllAsync<Transaction>(
         'SELECT * FROM transactions ORDER BY date DESC'
     );
-    console.log(result)
+    // console.log(result)
     const grouped: Record<string, Transaction[]> = {};
     let income = 0;
     let expense = 0;
@@ -78,7 +78,6 @@ export const getTransactions = async (): Promise<AccountSummary> => {
 
         grouped[dateStr].push(tx);
 
-
         // 計算總收入/支出
         if (tx.type === 'income') {
             income += tx.amount;
@@ -87,10 +86,23 @@ export const getTransactions = async (): Promise<AccountSummary> => {
         }
     }
 
-    const data = Object.entries(grouped).map(([date, txs]) => ({
-        date,
-        data: txs,
-    }));
+    const data = Object.entries(grouped).map(([date, txs]) => {
+        let dailyBalance = 0;// 每日餘額
+
+        for (const tx of txs) {
+            if (tx.type === 'income') {
+                dailyBalance += tx.amount;
+            } else {
+                dailyBalance -= tx.amount;
+            }
+        }
+
+        return {
+            date,
+            dailyBalance,
+            data: txs,
+        };
+    });
 
     return {
         income,
@@ -133,7 +145,6 @@ export const insertDefaultIcons = async () => {
 };
 
 export const addCustomIcon = async (
-
     icon: Omit<IconItem, 'id' | 'source'>
 ) => {
     await (await db).runAsync(

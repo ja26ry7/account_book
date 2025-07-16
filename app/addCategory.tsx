@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedInput } from '@/components/ThemedInput';
 import { ThemedText } from '@/components/ThemedText';
@@ -14,13 +14,13 @@ import {
   insertDefaultIcons,
 } from '@/db/db';
 import { IconItem } from '@/db/type';
-import { useColorScheme } from '@/hooks/useColorScheme.web';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
+import { useAppContext } from './AppProvider';
 
 const AddCategory = () => {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useAppContext();
   const router = useRouter();
   const [label, setLabel] = useState('');
   const [iconList, setIconList] = useState<IconItem[]>();
@@ -88,76 +88,87 @@ const AddCategory = () => {
     }, [])
   );
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText>命名類別：</ThemedText>
-      <ThemedInput value={label} onChangeText={setLabel} style={styles.input} />
+    <ThemedView style={{ flex: 1 }}>
+      <ScrollView>
+        <ThemedView style={styles.container}>
+          <ThemedText>命名類別：</ThemedText>
+          <ThemedInput
+            value={label}
+            onChangeText={setLabel}
+            style={styles.input}
+          />
 
-      <View style={styles.list}>
-        {data.map((item: any) => (
+          <View style={styles.list}>
+            {data.map((item: any) => (
+              <Pressable
+                key={item}
+                onPress={() => setSelectIcon(item)}
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: selectIcon === item ? '#2463f6' : 'white',
+                  },
+                  styles.icon,
+                ]}
+              >
+                <Ionicons
+                  name={item}
+                  color={selectIcon === item ? 'white' : Colors[theme].icon}
+                  size={20}
+                />
+              </Pressable>
+            ))}
+          </View>
+
           <Pressable
-            key={item}
-            onPress={() => setSelectIcon(item)}
             style={({ pressed }) => [
-              { backgroundColor: selectIcon === item ? '#2463f6' : 'white' },
-              styles.icon,
+              {
+                marginHorizontal: 30,
+                marginVertical: 20,
+                paddingVertical: 10,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 10,
+                backgroundColor: '#2463f6',
+                opacity: pressed ? 0.8 : 1,
+              },
             ]}
+            onPress={handleAdd}
           >
-            <Ionicons
-              name={item}
-              color={selectIcon === item ? 'white' : Colors[colorScheme].icon}
-              size={20}
-            />
+            <ThemedText lightColor="white">新增</ThemedText>
           </Pressable>
-        ))}
-      </View>
 
-      <Pressable
-        style={({ pressed }) => [
-          {
-            marginHorizontal: 30,
-            marginVertical: 20,
-            paddingVertical: 10,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 10,
-            backgroundColor: '#2463f6',
-            opacity: pressed ? 0.8 : 1,
-          },
-        ]}
-        onPress={handleAdd}
-      >
-        <ThemedText lightColor="white">新增</ThemedText>
-      </Pressable>
-
-      <ThemedText>目前類別：</ThemedText>
-      <ThemedView
-        style={{
-          padding: 5,
-          borderRadius: 10,
-          marginVertical: 10,
-          backgroundColor: Colors[colorScheme].cardBackground,
-        }}
-      >
-        {iconList?.map((item, index) => (
-          <View
-            key={item.label}
+          <ThemedText>目前類別：</ThemedText>
+          <ThemedView
             style={{
-              flexDirection: 'row',
-              padding: 10,
-              gap: 10,
-              borderBottomColor: 'lightgray',
-              borderBottomWidth: iconList.length !== index + 1 ? 1 : undefined,
+              padding: 5,
+              borderRadius: 10,
+              marginVertical: 10,
+              backgroundColor: Colors[theme].cardBackground,
             }}
           >
-            <Ionicons
-              name={item.icon as any}
-              color={Colors[colorScheme].icon}
-              size={20}
-            />
-            <ThemedText>{item.label}</ThemedText>
-          </View>
-        ))}
-      </ThemedView>
+            {iconList?.map((item, index) => (
+              <View
+                key={item.label}
+                style={{
+                  flexDirection: 'row',
+                  padding: 10,
+                  gap: 10,
+                  borderBottomColor: 'lightgray',
+                  borderBottomWidth:
+                    iconList.length !== index + 1 ? 1 : undefined,
+                }}
+              >
+                <Ionicons
+                  name={item.icon as any}
+                  color={Colors[theme].icon}
+                  size={20}
+                />
+                <ThemedText>{item.label}</ThemedText>
+              </View>
+            ))}
+          </ThemedView>
+        </ThemedView>
+      </ScrollView>
     </ThemedView>
   );
 };
@@ -167,6 +178,7 @@ export default AddCategory;
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    paddingBottom: 20,
   },
   icon: {
     margin: 5,
