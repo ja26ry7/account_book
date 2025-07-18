@@ -105,14 +105,21 @@ const AddCategory = () => {
                 onPress={() => setSelectIcon(item)}
                 style={({ pressed }) => [
                   {
-                    backgroundColor: selectIcon === item ? '#2463f6' : 'white',
+                    backgroundColor:
+                      selectIcon === item
+                        ? Colors[theme].tint
+                        : Colors[theme].cardBackground,
                   },
                   styles.icon,
                 ]}
               >
                 <Ionicons
                   name={item}
-                  color={selectIcon === item ? 'white' : Colors[theme].icon}
+                  color={
+                    selectIcon === item
+                      ? Colors[theme].activeTab
+                      : Colors[theme].icon
+                  }
                   size={20}
                 />
               </Pressable>
@@ -128,22 +135,20 @@ const AddCategory = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 10,
-                backgroundColor: '#2463f6',
+                backgroundColor: Colors[theme].button,
                 opacity: pressed ? 0.8 : 1,
               },
             ]}
             onPress={handleAdd}
           >
-            <ThemedText lightColor="white">新增</ThemedText>
+            <ThemedText>新增</ThemedText>
           </Pressable>
 
           <ThemedText>目前類別：</ThemedText>
           <ThemedView
             style={{
               padding: 5,
-              borderRadius: 10,
               marginVertical: 10,
-              backgroundColor: Colors[theme].cardBackground,
             }}
           >
             {iconList?.map((item, index) => (

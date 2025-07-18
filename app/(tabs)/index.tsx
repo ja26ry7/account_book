@@ -145,8 +145,8 @@ export default function HomeScreen() {
     <ThemedView style={{ flex: 1 }} lightColor="#ffffff" darkColor="#1e1e1e">
       <ThemedView
         style={styles.cardContainer}
-        lightColor="#A1CEDC"
-        darkColor="#1D3D47"
+        lightColor={Colors.light.button}
+        darkColor={Colors.dark.button}
       >
         <View style={styles.titleContainer}>
           <MoneyWave />

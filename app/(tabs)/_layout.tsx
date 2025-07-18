@@ -4,7 +4,6 @@ import { Platform, Pressable } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAppContext } from '../AppProvider';
@@ -25,13 +24,16 @@ export default function TabLayout() {
           backgroundColor: Colors[theme].background,
         },
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
+        // tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            backgroundColor: Colors[theme].cardBackground,
           },
-          default: {},
+          default: {
+            backgroundColor: Colors[theme].cardBackground,
+          },
         }),
       }}
     >

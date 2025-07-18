@@ -1,6 +1,6 @@
+import { useAppContext } from '@/app/AppProvider';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme.web';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
 import { StyleSheet } from 'react-native';
@@ -23,21 +23,18 @@ export const DropdownItem = ({
   icon = { label: '', value: 'link' },
   setIcon,
 }: Props) => {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useAppContext();
   const renderItem = (item: {
     label: string;
     value: keyof typeof Ionicons.glyphMap;
   }) => {
     return (
       <ThemedView
-        style={[
-          styles.item,
-          { backgroundColor: Colors[colorScheme].cardBackground },
-        ]}
+        style={[styles.item, { backgroundColor: Colors[theme].cardBackground }]}
       >
         <Ionicons
           style={styles.icon}
-          color={Colors[colorScheme].icon}
+          color={Colors[theme].icon}
           name={item.value}
           size={20}
         />
@@ -50,22 +47,22 @@ export const DropdownItem = ({
     <Dropdown
       style={[
         styles.dropdown,
-        { backgroundColor: Colors[colorScheme].cardBackground },
+        { backgroundColor: Colors[theme].cardBackground },
       ]}
       placeholderStyle={[
         styles.placeholderStyle,
-        { color: Colors[colorScheme].text },
+        { color: Colors[theme].text },
       ]}
       containerStyle={{
-        backgroundColor: Colors[colorScheme].cardBackground,
+        backgroundColor: Colors[theme].cardBackground,
       }}
       selectedTextStyle={[
         styles.selectedTextStyle,
-        { color: Colors[colorScheme].text },
+        { color: Colors[theme].text },
       ]}
       inputSearchStyle={[
         styles.inputSearchStyle,
-        { color: Colors[colorScheme].text },
+        { color: Colors[theme].text },
       ]}
       iconStyle={styles.iconStyle}
       data={data}
@@ -82,7 +79,7 @@ export const DropdownItem = ({
       renderLeftIcon={() => (
         <Ionicons
           style={styles.icon}
-          color={Colors[colorScheme].icon}
+          color={Colors[theme].icon}
           name={icon.value}
           size={20}
         />

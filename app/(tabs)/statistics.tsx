@@ -4,8 +4,8 @@ import { Colors } from '@/constants/Colors';
 import { formatCurrency, toCurrency } from '@/constants/format';
 import { getStateisticsByCategory } from '@/db/db';
 import { CategoryStat } from '@/db/type';
-import { Picker } from '@expo/ui/swift-ui';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -64,14 +64,20 @@ const EditTransaction = () => {
   return (
     <ScrollView>
       <ThemedView style={styles.container}>
-        <Picker
-          style={{ marginVertical: 20 }}
-          options={typeItem.map((e) => e.label)}
+        <SegmentedControl
+          values={typeItem.map((e) => e.label)}
           selectedIndex={typeItem.map((e) => e.value).indexOf(type)}
-          onOptionSelected={({ nativeEvent: { index } }) => {
-            setType(typeItem[index].value);
+          onChange={({ nativeEvent: { selectedSegmentIndex } }) => {
+            setType(typeItem[selectedSegmentIndex].value);
           }}
-          variant="segmented"
+          style={{
+            marginVertical: 20,
+            borderRadius: 5,
+          }}
+          backgroundColor={Colors[theme].background}
+          tintColor={Colors[theme].activeTab}
+          fontStyle={{ color: Colors[theme].text }}
+          activeFontStyle={{ color: Colors[theme].tint }}
         />
         <View style={{ alignItems: 'center' }}>
           <PieChart

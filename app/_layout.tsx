@@ -66,7 +66,7 @@ export default function RootLayout() {
           <Stack.Screen name="setting" options={{ headerTitle: '設定' }} />
           <Stack.Screen name="selectTheme" options={{ headerTitle: '外觀' }} />
         </Stack>
-        <StatusBar style="auto" />
+        <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       </AppProvider>
     </ThemeProvider>
   );

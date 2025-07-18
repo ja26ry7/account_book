@@ -10,8 +10,9 @@ import {
   updateTransaction,
 } from '@/db/db';
 import { IconItem } from '@/db/type';
-import { Button, Picker } from '@expo/ui/swift-ui';
+import { Button } from '@expo/ui/swift-ui';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
@@ -126,15 +127,22 @@ const EditTransaction = () => {
   );
   return (
     <ThemedView style={styles.container}>
-      <Picker
-        style={{ marginVertical: 20 }}
-        options={typeItem.map((e) => e.label)}
+      <SegmentedControl
+        values={typeItem.map((e) => e.label)}
         selectedIndex={typeItem.map((e) => e.value).indexOf(type)}
-        onOptionSelected={({ nativeEvent: { index } }) => {
-          setType(typeItem[index].value);
+        onChange={({ nativeEvent: { selectedSegmentIndex } }) => {
+          setType(typeItem[selectedSegmentIndex].value);
         }}
-        variant="segmented"
+        style={{
+          marginVertical: 20,
+          borderRadius: 5,
+        }}
+        backgroundColor={Colors[theme].background}
+        tintColor={Colors[theme].activeTab}
+        fontStyle={{ color: Colors[theme].text }}
+        activeFontStyle={{ color: Colors[theme].tint }}
       />
+
       <ThemedText>金額：</ThemedText>
       <ThemedInput
         value={amount.replace(/[^0-9]/g, '')}
@@ -177,6 +185,7 @@ const EditTransaction = () => {
       >
         <ThemedText>日期：</ThemedText>
         <DateTimePicker
+          themeVariant={theme}
           value={date}
           mode="date"
           is24Hour={true}
@@ -188,6 +197,7 @@ const EditTransaction = () => {
         />
 
         <DateTimePicker
+          themeVariant={theme}
           value={date}
           mode="time"
           is24Hour={true}
@@ -212,7 +222,7 @@ const EditTransaction = () => {
         ]}
         onPress={handleEdit}
       >
-        <ThemedText lightColor="white">{id ? '儲存' : '新增'}</ThemedText>
+        <ThemedText>{id ? '儲存' : '新增'}</ThemedText>
       </Pressable>
       {id && (
         <Pressable

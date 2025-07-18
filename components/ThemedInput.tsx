@@ -1,7 +1,7 @@
 import { TextInput, type TextInputProps } from 'react-native';
 
+import { useAppContext } from '@/app/AppProvider';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme.web';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 export type ThemedInputProps = TextInputProps & {
@@ -15,7 +15,7 @@ export function ThemedInput({
   darkColor,
   ...otherProps
 }: ThemedInputProps) {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useAppContext();
   const backgroundColor = useThemeColor(
     { light: lightColor, dark: darkColor },
     'cardBackground'
@@ -26,7 +26,7 @@ export function ThemedInput({
       style={[
         {
           backgroundColor: backgroundColor,
-          color: Colors[colorScheme].text,
+          color: Colors[theme].text,
           borderRadius: 8,
           paddingVertical: 10,
           paddingHorizontal: 15,
