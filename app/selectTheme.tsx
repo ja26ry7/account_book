@@ -17,24 +17,20 @@ const SelectTheme = () => {
   type themeItem = {
     label: string;
     mode: 'auto' | 'light' | 'dark';
-    isDivider?: boolean;
   };
 
   const modes: themeItem[] = [
     {
       label: '自動',
       mode: 'auto',
-      isDivider: true,
     },
     {
       label: '夜間模式',
       mode: 'dark',
-      isDivider: true,
     },
     {
       label: '明亮模式',
       mode: 'light',
-      isDivider: false,
     },
   ];
 
@@ -53,7 +49,10 @@ const SelectTheme = () => {
     loadTheme();
   }, []);
 
-  const ItemSetting: React.FC<{ item: themeItem }> = ({ item }) => (
+  const ItemSetting: React.FC<{ item: themeItem; isDivider: boolean }> = ({
+    item,
+    isDivider,
+  }) => (
     <Pressable
       style={{
         flexDirection: 'row',
@@ -61,7 +60,7 @@ const SelectTheme = () => {
         padding: 10,
         gap: 10,
         borderColor: Colors[theme].line,
-        borderBottomWidth: item.isDivider ? 1 : 0,
+        borderBottomWidth: isDivider ? 1 : 0,
       }}
       onPress={() => {
         if (item.mode === 'auto') {
@@ -93,8 +92,12 @@ const SelectTheme = () => {
             backgroundColor: Colors[theme].cardBackground,
           }}
         >
-          {modes.map((item) => (
-            <ItemSetting key={item.label} item={item} />
+          {modes.map((item, index) => (
+            <ItemSetting
+              key={item.label}
+              item={item}
+              isDivider={modes.length - 1 !== index}
+            />
           ))}
         </ThemedView>
       </ScrollView>

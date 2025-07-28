@@ -20,8 +20,9 @@ export const Colors = {
     tabIconDefault: iconColorLight,
     tabIconSelected: tintColorLight,
     activeTab: '#ffffff',
-    button: '#A1CEDC',
-    line: '#D0D0D0'
+    button: '#7fc2d5',
+    line: '#D0D0D0',
+    delete: '#FF3B30'
   },
   dark: {
     text: '#ECEDEE',
@@ -32,7 +33,8 @@ export const Colors = {
     tabIconDefault: iconColorDark,
     tabIconSelected: tintColorDark,
     activeTab: '#687076',
-    button: '#1D3D47',
-    line: '#6C6C6C'
+    button: '#27525f',
+    line: '#6C6C6C',
+    delete: '#bb3a33'
   },
 };

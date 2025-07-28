@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from '../hooks/useColorScheme.web';
 
 /////////////////////////////////////////////////////
@@ -11,6 +11,8 @@ type Theme = 'light' | 'dark';
 interface AppContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  editMode: boolean;
+  setEditMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -26,6 +28,8 @@ interface AppProviderProps {
   children: React.ReactNode;
   theme: Theme;
   setTheme: React.Dispatch<React.SetStateAction<Theme>>;
+  editMode: boolean;
+  setEditMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AppProvider: React.FC<AppProviderProps> = ({
@@ -34,6 +38,7 @@ const AppProvider: React.FC<AppProviderProps> = ({
   children,
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -49,7 +54,7 @@ const AppProvider: React.FC<AppProviderProps> = ({
 
   /////////////////////////////////////////////////////
   return (
-    <AppContext.Provider value={{ theme, setTheme }}>
+    <AppContext.Provider value={{ theme, setTheme, editMode, setEditMode }}>
       {children}
     </AppContext.Provider>
   );

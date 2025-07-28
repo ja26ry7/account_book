@@ -2,21 +2,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { ThemedInput } from '@/components/ThemedInput';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import { ThemedInput } from '../components/ThemedInput';
+import { ThemedText } from '../components/ThemedText';
+import { ThemedView } from '../components/ThemedView';
+import { Colors } from '../constants/Colors';
 import {
   addCustomIcon,
   createIconsTable,
   deleteIcon,
   getAllIcons,
   insertDefaultIcons,
-} from '@/db/db';
-import { IconItem } from '@/db/type';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+} from '../db/db';
+import { IconItem } from '../db/type';
 import { useAppContext } from './AppProvider';
 
 const AddCategory = () => {
@@ -24,6 +24,7 @@ const AddCategory = () => {
   const router = useRouter();
   const [label, setLabel] = useState('');
   const [iconList, setIconList] = useState<IconItem[]>();
+  const [editMode, setEditMode] = useState(false);
 
   const data = [
     'fast-food',
@@ -59,10 +60,15 @@ const AddCategory = () => {
       return;
     }
 
-    await addCustomIcon({ label, icon: selectIcon });
+    try {
+      await addCustomIcon({ label, icon: selectIcon });
+    } catch {
+      alert('類別名稱已存在');
+      return;
+    }
+
     router.back();
   };
-  deleteIcon(19);
 
   const getList = async () => {
     const txs = await getAllIcons();
@@ -144,7 +150,24 @@ const AddCategory = () => {
             <ThemedText>新增</ThemedText>
           </Pressable>
 
-          <ThemedText>目前類別：</ThemedText>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <ThemedText>目前類別：</ThemedText>
+            <Ionicons
+              name="pencil-outline"
+              size={20}
+              color={Colors[theme].icon}
+              onPress={() => {
+                setEditMode(!editMode);
+              }}
+            />
+          </View>
+
           <ThemedView
             style={{
               padding: 5,
@@ -163,6 +186,18 @@ const AddCategory = () => {
                     iconList.length !== index + 1 ? 1 : undefined,
                 }}
               >
+                {editMode && (
+                  <Ionicons
+                    name="remove-circle"
+                    size={20}
+                    color={Colors[theme].delete}
+                    onPress={async () => {
+                      setEditMode(false);
+                      await deleteIcon(item.id);
+                      getList();
+                    }}
+                  />
+                )}
                 <Ionicons
                   name={item.icon as any}
                   color={Colors[theme].icon}

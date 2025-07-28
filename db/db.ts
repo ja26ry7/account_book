@@ -147,6 +147,11 @@ export const insertDefaultIcons = async () => {
 export const addCustomIcon = async (
     icon: Omit<IconItem, 'id' | 'source'>
 ) => {
+    const iconList = await getAllIcons();
+    const existIcon = iconList.find((item) => item.label === icon.label);
+    if (existIcon) {
+        throw new Error('Icon with this label already exists');
+    }
     await (await db).runAsync(
         `INSERT INTO icons (label, icon, source) VALUES (?, ?, ?)`,
         [icon.label, icon.icon, 'custom']
@@ -157,12 +162,26 @@ export const getAllIcons = async (): Promise<IconItem[]> => {
     return result;
 };
 
-export const deleteIcon = async (id: number): Promise<void> => {
+export const deleteIcon = async (id: IconItem['id']): Promise<void> => {
+    if (typeof id !== 'number') {
+        throw new Error('Invalid icon id');
+    }
     await (await db).runAsync(`DELETE FROM icons WHERE id = ?`, [id]);
 };
 
-export const getStateisticsByCategory = async (type: 'income' | 'expense'): Promise<CategoryStat[]> => {
+export const getStateisticsByCategory = async ({ type, range }: { type: 'income' | 'expense', range: 'all' | 'year' | 'month' }): Promise<CategoryStat[]> => {
     const dbInstance = await db;
+
+    let whereClause = `t.type = ? AND i.label IS NOT NULL`;
+    const params: any[] = [type]
+
+    if (range === 'year') {
+        whereClause += ` AND strftime('%Y', t.date) = ?`
+        params.push(dayjs().format('YYYY'));
+    } else if (range === 'month') {
+        whereClause += ` AND strftime('%Y-%m', t.date) = ?`
+        params.push(dayjs().format('YYYY-MM'));
+    }
 
     const result = await dbInstance.getAllAsync<{
         icon: string;
@@ -177,10 +196,10 @@ export const getStateisticsByCategory = async (type: 'income' | 'expense'): Prom
         COUNT(*) AS count
       FROM transactions t
       LEFT JOIN icons i ON t.icon = i.icon
-      WHERE t.type = ?
-      GROUP BY t.icon
+      WHERE ${whereClause}
+      GROUP BY t.icon, i.label
       ORDER BY amount DESC
-    `, [type]);
+    `, params);
 
     return result;
 }

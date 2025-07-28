@@ -28,6 +28,7 @@ export interface AccountSummary {
 export type IconSource = 'default' | 'custom';
 
 export interface IconItem {
+    id?: number;
     label: string;
     icon: string;
     source: IconSource;

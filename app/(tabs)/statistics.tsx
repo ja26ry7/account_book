@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { formatCurrency, toCurrency } from '@/constants/format';
+import { formatCurrency } from '@/constants/format';
 import { getStateisticsByCategory } from '@/db/db';
 import { CategoryStat } from '@/db/type';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -16,6 +16,7 @@ const EditTransaction = () => {
   const { theme } = useAppContext();
 
   const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [range, setRange] = useState<'all' | 'year' | 'month'>('all');
   const [categoryList, setCategoryList] = useState<CategoryStat[]>();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -34,16 +35,32 @@ const EditTransaction = () => {
     value: 'income' | 'expense';
   };
 
+  type RangeItem = {
+    label: string;
+    value: 'all' | 'year' | 'month';
+  };
+
   const typeItem: TypeItem[] = [
     { label: '支出', value: 'expense' },
     { label: '收入', value: 'income' },
   ];
 
-  const getList = useCallback(
-    async (type: 'income' | 'expense') => {
-      const txs = await getStateisticsByCategory(type);
-      setCategoryList(txs);
+  const rangeItem: RangeItem[] = [
+    { label: '所有', value: 'all' },
+    { label: '今年', value: 'year' },
+    { label: '本月', value: 'month' },
+  ];
 
+  const getList = useCallback(
+    async ({
+      type,
+      range,
+    }: {
+      type: TypeItem['value'];
+      range: RangeItem['value'];
+    }) => {
+      const txs = await getStateisticsByCategory({ type, range });
+      setCategoryList(txs);
       const data = txs?.map((item, index) => ({
         text: item.label,
         value: item.amount,
@@ -58,12 +75,30 @@ const EditTransaction = () => {
 
   useFocusEffect(
     useCallback(() => {
-      getList(type);
-    }, [getList, type])
+      getList({
+        type,
+        range,
+      });
+    }, [getList, type, range])
   );
   return (
     <ScrollView>
       <ThemedView style={styles.container}>
+        <SegmentedControl
+          values={rangeItem.map((e) => e.label)}
+          selectedIndex={rangeItem.map((e) => e.value).indexOf(range)}
+          onChange={({ nativeEvent: { selectedSegmentIndex } }) => {
+            setRange(rangeItem[selectedSegmentIndex].value);
+          }}
+          style={{
+            marginTop: 20,
+            borderRadius: 5,
+          }}
+          backgroundColor={Colors[theme].background}
+          tintColor={Colors[theme].activeTab}
+          fontStyle={{ color: Colors[theme].text }}
+          activeFontStyle={{ color: Colors[theme].tint }}
+        />
         <SegmentedControl
           values={typeItem.map((e) => e.label)}
           selectedIndex={typeItem.map((e) => e.value).indexOf(type)}
@@ -108,16 +143,19 @@ const EditTransaction = () => {
             }}
           />
         </View>
-        {categoryList?.map((item) => (
+        {categoryList?.map((item, index) => (
           <Pressable key={item.label} style={styles.item} onPress={() => {}}>
             <Ionicons
               name={item.icon as any}
               size={20}
-              color={Colors[theme].icon}
+              color={colors[index % colors.length] || Colors[theme].icon}
             />
             <ThemedText type="defaultSemiBold">{item.label}</ThemedText>
+            <ThemedText type="remark">
+              {((item.amount / total) * 100).toFixed(1) + '%'}
+            </ThemedText>
             <View style={{ flex: 1 }} />
-            <ThemedText>{toCurrency(item.amount)}</ThemedText>
+            <ThemedText>{formatCurrency(item.amount)}</ThemedText>
           </Pressable>
         ))}
       </ThemedView>

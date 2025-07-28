@@ -1,17 +1,16 @@
-import Entypo from '@expo/vector-icons/Entypo';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import LocalizedFormat from 'dayjs/plugin/localizedFormat';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Alert, Pressable, SectionList, StyleSheet, View } from 'react-native';
 
-import { MoneyWave } from '@/components/MoneyWave';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { MoneyWave } from '../../components/MoneyWave';
+import { ThemedText } from '../../components/ThemedText';
+import { ThemedView } from '../../components/ThemedView';
 
-import { Colors } from '@/constants/Colors';
 import { deleteTransaction, getTransactions, initDB } from '@/db/db';
 import { Transaction, TransactionGroup } from '@/db/type';
 import { useCallback, useEffect, useState } from 'react';
+import { Colors } from '../../constants/Colors';
 import { formatCurrency, toCurrency } from '../../constants/format';
 import dayjs from '../../node_modules/dayjs/esm/index';
 import { useAppContext } from '../AppProvider';
@@ -20,21 +19,7 @@ export default function HomeScreen() {
   const router = useRouter();
   dayjs.locale('zh-tw');
   dayjs.extend(LocalizedFormat);
-  const { theme } = useAppContext();
-  // interface TransactionItem {
-  //   id: number;
-  //   title: string;
-  //   remark: string;
-  //   amount: number;
-  //   icon: string;
-  //   type: string;
-  //   date: string;
-  // }
-
-  // interface TransactionGroup {
-  //   date: string;
-  //   data: TransactionItem[];
-  // }
+  const { theme, editMode, setEditMode } = useAppContext();
 
   const [balance, setBalance] = useState<number>(0);
   const [income, setIncome] = useState<number>(0);
@@ -73,14 +58,11 @@ export default function HomeScreen() {
   }
 
   const ListItem: React.FC<ListItemProps> = ({ item, deleteItem }) => {
-    const [showTrash, setShowTrash] = useState(false);
-
     return (
       <Pressable
         style={styles.item}
-        onLongPress={() => setShowTrash(!showTrash)}
         onPress={() => {
-          setShowTrash(false);
+          setEditMode(false);
           router.navigate({
             pathname: '/editTransaction',
             params: {
@@ -95,6 +77,17 @@ export default function HomeScreen() {
           });
         }}
       >
+        {editMode && (
+          <Ionicons
+            name="remove-circle"
+            size={20}
+            color={Colors[theme].delete}
+            onPress={async () => {
+              setEditMode(false);
+              deleteItem(item.id!);
+            }}
+          />
+        )}
         <Ionicons
           name={item.icon as any}
           size={20}
@@ -111,11 +104,6 @@ export default function HomeScreen() {
           </ThemedText>
         ) : (
           <ThemedText>-${toCurrency(item.amount)}</ThemedText>
-        )}
-        {showTrash && item.id !== undefined && (
-          <Pressable onPress={() => deleteItem(item.id!)}>
-            <Entypo name="trash" size={24} color="red" />
-          </Pressable>
         )}
       </Pressable>
     );
@@ -218,7 +206,11 @@ export default function HomeScreen() {
         )}
       />
 
-      <ThemedView style={styles.add} lightColor="#A1CEDC" darkColor="#1D3D47">
+      <ThemedView
+        style={styles.add}
+        lightColor={Colors.light.button}
+        darkColor={Colors.dark.button}
+      >
         <Pressable onPress={add}>
           <ThemedText type="title">+</ThemedText>
         </Pressable>

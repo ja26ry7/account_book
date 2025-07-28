@@ -233,7 +233,7 @@ const EditTransaction = () => {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: 10,
-              backgroundColor: 'red',
+              backgroundColor: Colors[theme].delete,
               opacity: pressed ? 0.8 : 1,
             },
           ]}

@@ -14,7 +14,6 @@ const Setting = () => {
     label: string;
     icon: keyof typeof Ionicons.glyphMap | undefined;
     path: string;
-    isDivider?: boolean;
   };
 
   const settings: SettingItem[] = [
@@ -22,17 +21,18 @@ const Setting = () => {
       label: '外觀',
       icon: 'moon',
       path: '/selectTheme',
-      isDivider: true,
     },
     {
       label: '類別',
       icon: 'list',
       path: '/addCategory',
-      isDivider: false,
     },
   ];
 
-  const ItemSetting: React.FC<{ item: SettingItem }> = ({ item }) => (
+  const ItemSetting: React.FC<{ item: SettingItem; isDivider: boolean }> = ({
+    item,
+    isDivider,
+  }) => (
     <Pressable
       style={{
         flexDirection: 'row',
@@ -40,7 +40,7 @@ const Setting = () => {
         padding: 10,
         gap: 10,
         borderColor: Colors[theme].line,
-        borderBottomWidth: item.isDivider ? 1 : 0,
+        borderBottomWidth: isDivider ? 1 : 0,
       }}
       onPress={() => router.navigate(item.path as any)}
     >
@@ -63,8 +63,12 @@ const Setting = () => {
             backgroundColor: Colors[theme].cardBackground,
           }}
         >
-          {settings.map((item) => (
-            <ItemSetting key={item.label} item={item} />
+          {settings.map((item, index) => (
+            <ItemSetting
+              key={item.label}
+              item={item}
+              isDivider={settings.length - 1 !== index}
+            />
           ))}
         </ThemedView>
       </ScrollView>
