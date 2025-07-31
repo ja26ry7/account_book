@@ -28,6 +28,7 @@ export function ThemedInput({
           backgroundColor: backgroundColor,
           color: Colors[theme].text,
           borderRadius: 8,
+          height: 40,
           paddingVertical: 10,
           paddingHorizontal: 15,
         },

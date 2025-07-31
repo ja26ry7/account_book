@@ -1,4 +1,5 @@
 // db.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs/esm';
 import { openDatabaseAsync } from 'expo-sqlite';
 import { AccountSummary, CategoryStat, IconItem, Transaction } from './type';
@@ -6,7 +7,6 @@ import { AccountSummary, CategoryStat, IconItem, Transaction } from './type';
 const db = openDatabaseAsync("account.db");
 
 export const initDB = async () => {
-
     await (await db).execAsync(`
     CREATE TABLE IF NOT EXISTS transactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,30 +15,55 @@ export const initDB = async () => {
       remark TEXT,
       amount REAL NOT NULL,
       icon TEXT,
+      color TEXT,
       date TEXT NOT NULL
     );
   `);
+
+    // 檢查 color 欄位是否存在，再決定是否加欄位
+    try {
+        await (await db).runAsync(`
+          ALTER TABLE transactions ADD COLUMN color TEXT;
+        `);
+        console.log('Column "color" added to icons table.');
+    } catch (e) {
+        console.log(e)
+    }
 };
 
-export const addTransaction = async (tx: Transaction): Promise<void> => {
-    const { type, title, remark, amount, icon, date } = tx;
+export const deleteDB = async () => {
+    await (await db).execAsync(`
+        DELETE FROM transactions;
+        DELETE FROM sqlite_sequence WHERE name='transactions';
+        DELETE FROM icons;
+        DELETE FROM sqlite_sequence WHERE name='icons';
+      `);
+    AsyncStorage.removeItem('importedDefaultIcon');
+}
 
-    await (await db).runAsync(
-        `INSERT INTO transactions (type, title, remark, amount, icon, date)
-         VALUES (?, ?, ?, ?, ?, ?);`,
-        [
-            type,
-            title,
-            remark ?? '',
-            amount,
-            icon ?? '',
-            date instanceof Date ? date.toISOString() : date,
-        ]
-    );
+export const addTransaction = async (tx: Transaction): Promise<void> => {
+    const { type, title, remark, amount, icon, color, date } = tx;
+    try {
+        await (await db).runAsync(
+            `INSERT INTO transactions (type, title, remark, amount, icon, color, date)
+         VALUES (?, ?, ?, ?, ?, ?, ?);`,
+            [
+                type,
+                title,
+                remark ?? '',
+                amount,
+                icon ?? '',
+                color ?? '',
+                date instanceof Date ? date.toISOString() : date,
+            ]
+        );
+    } catch (e) {
+        console.log(e)
+    }
 };
 
 export const updateTransaction = async (tx: Transaction): Promise<void> => {
-    const { id, type, title, remark, amount, icon, date } = tx;
+    const { id, type, title, remark, amount, icon, color, date } = tx;
 
     if (typeof id !== 'number') {
         throw new Error('Invalid transaction id');
@@ -46,7 +71,7 @@ export const updateTransaction = async (tx: Transaction): Promise<void> => {
 
     await (await db).runAsync(
         `UPDATE transactions
-         SET type = ?, title = ?, remark = ?, amount = ?, icon = ?, date = ?
+         SET type = ?, title = ?, remark = ?, amount = ?, icon = ?, color = ?, date = ?
          WHERE id = ?`,
         [
             type,
@@ -54,6 +79,7 @@ export const updateTransaction = async (tx: Transaction): Promise<void> => {
             remark ?? '',
             amount,
             icon ?? '',
+            color ?? '',
             date instanceof Date ? date.toISOString() : date,
             id,
         ]
@@ -65,7 +91,6 @@ export const getTransactions = async (): Promise<AccountSummary> => {
     const result = await dbInstance.getAllAsync<Transaction>(
         'SELECT * FROM transactions ORDER BY date DESC'
     );
-    // console.log(result)
     const grouped: Record<string, Transaction[]> = {};
     let income = 0;
     let expense = 0;
@@ -118,28 +143,39 @@ export const deleteTransaction = async (id: number): Promise<void> => {
 
 
 export const defaultIcons: IconItem[] = [
-    { label: '飲食', icon: 'fast-food', source: 'default' },
-    { label: '交通', icon: 'train', source: 'default' },
-    { label: '購物', icon: 'bag-handle', source: 'default' },
-    { label: '娛樂', icon: 'game-controller', source: 'default' },
+    { label: '飲食', icon: 'fast-food', color: '#FF8000', source: 'default' },
+    { label: '交通', icon: 'train', color: '#2894FF', source: 'default' },
+    { label: '購物', icon: 'bag-handle', color: '#FF0000', source: 'default' },
+    { label: '娛樂', icon: 'game-controller', color: '#FFD306', source: 'default' },
 ];
 
 export const createIconsTable = async () => {
     await (await db).runAsync(`
-    CREATE TABLE IF NOT EXISTS icons (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      label TEXT NOT NULL,
-      icon TEXT NOT NULL,
-      source TEXT NOT NULL CHECK(source IN ('default', 'custom'))
-    );
-  `);
+        CREATE TABLE IF NOT EXISTS icons (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          label TEXT NOT NULL,
+          icon TEXT NOT NULL,
+          source TEXT NOT NULL CHECK(source IN ('default', 'custom'))
+        );
+      `);
+
+    // 檢查 color 欄位是否存在，再決定是否加欄位
+    try {
+        await (await db).runAsync(`
+          ALTER TABLE icons ADD COLUMN color TEXT;
+        `);
+        console.log('Column "color" added to icons table.');
+    } catch (e) {
+        console.log(e)
+    }
 };
+
 
 export const insertDefaultIcons = async () => {
     for (const item of defaultIcons) {
         await (await db).runAsync(
-            `INSERT INTO icons (label, icon, source) VALUES (?, ?, ?)`,
-            [item.label, item.icon, item.source]
+            `INSERT INTO icons (label, icon, color, source) VALUES (?, ?, ?, ?)`,
+            [item.label, item.icon, item.color, item.source]
         );
     }
 };
@@ -153,8 +189,8 @@ export const addCustomIcon = async (
         throw new Error('Icon with this label already exists');
     }
     await (await db).runAsync(
-        `INSERT INTO icons (label, icon, source) VALUES (?, ?, ?)`,
-        [icon.label, icon.icon, 'custom']
+        `INSERT INTO icons (label, icon, color, source) VALUES (?, ?, ?, ?)`,
+        [icon.label, icon.icon, icon.color, 'custom']
     );
 };
 export const getAllIcons = async (): Promise<IconItem[]> => {
@@ -185,12 +221,14 @@ export const getStateisticsByCategory = async ({ type, range }: { type: 'income'
 
     const result = await dbInstance.getAllAsync<{
         icon: string;
+        color: string;
         label: string;
         amount: number;
         count: number;
     }>(`
       SELECT
         t.icon,
+        t.color,
         i.label,
         SUM(t.amount) AS amount,
         COUNT(*) AS count

@@ -26,10 +26,7 @@ const EditTransaction = () => {
     color: string;
   };
   const [pieData, setPieData] = useState<PieDataItem[]>([]);
-  const colors = React.useMemo(
-    () => ['#9F35FF', '#FFCE56', '#FF60AF', '#2894FF', '#00CACA', '#FF9224'],
-    []
-  );
+
   type TypeItem = {
     label: string;
     value: 'income' | 'expense';
@@ -64,11 +61,13 @@ const EditTransaction = () => {
       const data = txs?.map((item, index) => ({
         text: item.label,
         value: item.amount,
-        color: colors[index % colors.length],
+        color: item.color,
       }));
-      setPieData(data);
+      if (data.length > 0) {
+        setPieData(data);
+      }
     },
-    [colors]
+    []
   );
 
   const total = pieData.reduce((sum, item) => sum + item.value, 0);
@@ -145,11 +144,7 @@ const EditTransaction = () => {
         </View>
         {categoryList?.map((item, index) => (
           <Pressable key={item.label} style={styles.item} onPress={() => {}}>
-            <Ionicons
-              name={item.icon as any}
-              size={20}
-              color={colors[index % colors.length] || Colors[theme].icon}
-            />
+            <Ionicons name={item.icon as any} size={20} color={item.color} />
             <ThemedText type="defaultSemiBold">{item.label}</ThemedText>
             <ThemedText type="remark">
               {((item.amount / total) * 100).toFixed(1) + '%'}

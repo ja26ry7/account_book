@@ -29,6 +29,7 @@ const EditTransaction = () => {
     originalRemark,
     originalTitle,
     originalIcon,
+    originalColor,
     originalDate,
     id,
   } = useLocalSearchParams();
@@ -52,6 +53,7 @@ const EditTransaction = () => {
   const [icon, setIcon] = useState<Option>({
     label: toStringParam(originalTitle),
     value: (toStringParam(originalIcon) || 'link') as Option['value'],
+    color: toStringParam(originalColor),
   });
 
   const [date, setDate] = useState<Date>(parseToDate(originalDate));
@@ -74,9 +76,10 @@ const EditTransaction = () => {
       amount: numericAmount,
       remark,
       icon: icon.value,
+      color: icon.color,
       date,
     };
-
+    console.log(data);
     if (id) {
       await updateTransaction({
         id: Number(id),
@@ -162,7 +165,11 @@ const EditTransaction = () => {
       </View>
       <DropdownItem
         data={
-          iconList?.map((e) => ({ label: e.label, value: e.icon })) as Option[]
+          iconList?.map((e) => ({
+            label: e.label,
+            value: e.icon,
+            color: e.color,
+          })) as Option[]
         }
         icon={icon}
         setIcon={setIcon}

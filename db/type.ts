@@ -9,6 +9,7 @@ export interface Transaction {
     remark?: string;
     amount: number;
     icon?: string;
+    color: string;
     date: Date; // ISO 格式
 }
 
@@ -31,11 +32,13 @@ export interface IconItem {
     id?: number;
     label: string;
     icon: string;
+    color: string;
     source: IconSource;
 }
 
 export interface CategoryStat {
     icon: string;
+    color: string;
     label: string;
     amount: number;
     count: number;

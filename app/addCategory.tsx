@@ -1,6 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Popover from 'react-native-popover-view';
+import { useSharedValue } from 'react-native-reanimated';
+import type { ColorFormatsObject } from 'reanimated-color-picker';
+import ColorPicker, { Panel5, PreviewText } from 'reanimated-color-picker';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -25,8 +29,9 @@ const AddCategory = () => {
   const [label, setLabel] = useState('');
   const [iconList, setIconList] = useState<IconItem[]>();
   const [editMode, setEditMode] = useState(false);
+  const [showCustomColor, setShowCustomColor] = useState(false);
 
-  const data = [
+  const iconData = [
     'fast-food',
     'restaurant',
     'wine',
@@ -52,7 +57,33 @@ const AddCategory = () => {
     'wallet',
     'medkit',
   ];
-  const [selectIcon, setSelectIcon] = useState(data[0]);
+
+  const colorData = [
+    '#FF0000',
+    '#FF8000',
+    '#FFD306',
+    '#00DB00',
+    '#2894FF',
+    '#0000C6',
+    '#8600FF',
+    '#FF60AF',
+    '#9D9D9D',
+  ];
+  const [selectIcon, setSelectIcon] = useState(iconData[0]);
+  const [selectColor, setSelectColor] = useState(colorData[0]);
+
+  const currentColor = useSharedValue(selectColor);
+
+  const onColorChange = (color: ColorFormatsObject) => {
+    'worklet';
+    currentColor.value = color.hex;
+  };
+
+  // runs on the js thread on color pick
+  const onColorPick = (color: ColorFormatsObject) => {
+    console.log(color.hex);
+    setSelectColor(color.hex);
+  };
 
   const handleAdd = async () => {
     if (!label) {
@@ -61,8 +92,9 @@ const AddCategory = () => {
     }
 
     try {
-      await addCustomIcon({ label, icon: selectIcon });
-    } catch {
+      await addCustomIcon({ label, icon: selectIcon, color: selectColor });
+    } catch (error) {
+      console.log(error);
       alert('類別名稱已存在');
       return;
     }
@@ -104,8 +136,14 @@ const AddCategory = () => {
             style={styles.input}
           />
 
-          <View style={styles.list}>
-            {data.map((item: any) => (
+          <ThemedText>圖像：</ThemedText>
+          <ThemedView
+            style={[
+              styles.list,
+              { backgroundColor: Colors[theme].cardBackground },
+            ]}
+          >
+            {iconData.map((item: any) => (
               <Pressable
                 key={item}
                 onPress={() => setSelectIcon(item)}
@@ -113,7 +151,7 @@ const AddCategory = () => {
                   {
                     backgroundColor:
                       selectIcon === item
-                        ? Colors[theme].tint
+                        ? selectColor
                         : Colors[theme].cardBackground,
                   },
                   styles.icon,
@@ -123,14 +161,105 @@ const AddCategory = () => {
                   name={item}
                   color={
                     selectIcon === item
-                      ? Colors[theme].activeTab
+                      ? Colors[theme].text
                       : Colors[theme].icon
                   }
                   size={20}
                 />
               </Pressable>
             ))}
-          </View>
+          </ThemedView>
+
+          <ThemedText>顏色：</ThemedText>
+          <ThemedView
+            style={[
+              styles.list,
+              { backgroundColor: Colors[theme].cardBackground },
+            ]}
+          >
+            {colorData.map((item: any) => (
+              <Pressable
+                key={item}
+                onPress={() => setSelectColor(item)}
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: item,
+                  },
+                  styles.icon,
+                ]}
+              >
+                {selectColor === item && (
+                  <Ionicons
+                    name={'checkmark'}
+                    color={Colors[theme].text}
+                    size={25}
+                  />
+                )}
+              </Pressable>
+            ))}
+
+            <Popover
+              isVisible={showCustomColor}
+              onRequestClose={() => {
+                setShowCustomColor(false);
+              }}
+              popoverStyle={[
+                styles.pickerContainer,
+                { backgroundColor: Colors[theme].background },
+              ]}
+              backgroundStyle={{ opacity: 0 }}
+              from={
+                <Pressable
+                  onPress={() => setShowCustomColor(true)}
+                  style={({ pressed }) => [
+                    {
+                      flex: 1,
+                      opacity: pressed ? 0.8 : 1,
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    },
+                  ]}
+                >
+                  <ThemedText>自訂顏色</ThemedText>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={Colors[theme].text}
+                  />
+                </Pressable>
+              }
+            >
+              <ColorPicker
+                value={selectColor}
+                sliderThickness={25}
+                thumbSize={24}
+                thumbShape="circle"
+                onChange={onColorChange}
+                onCompleteJS={onColorPick}
+                style={styles.picker}
+              >
+                <Panel5 style={styles.panelStyle} />
+                <PreviewText style={styles.previewTxt} colorFormat="hsla" />
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      marginHorizontal: 30,
+                      paddingVertical: 10,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 5,
+                      backgroundColor: Colors[theme].button,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                  onPress={() => setShowCustomColor(false)}
+                >
+                  <ThemedText>確認</ThemedText>
+                </Pressable>
+              </ColorPicker>
+            </Popover>
+          </ThemedView>
 
           <Pressable
             style={({ pressed }) => [
@@ -200,7 +329,7 @@ const AddCategory = () => {
                 )}
                 <Ionicons
                   name={item.icon as any}
-                  color={Colors[theme].icon}
+                  color={item.color || Colors[theme].icon}
                   size={20}
                 />
                 <ThemedText>{item.label}</ThemedText>
@@ -221,9 +350,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   icon: {
-    margin: 5,
-    height: 40,
-    width: 40,
+    height: 30,
+    width: 30,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
@@ -232,11 +360,74 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     flexWrap: 'wrap',
-    justifyContent: 'center',
     marginVertical: 10,
+    borderRadius: 10,
+    padding: 10,
   },
   input: {
     padding: 8,
     marginVertical: 8,
+  },
+  picker: {
+    gap: 20,
+  },
+  pickerContainer: {
+    width: 200,
+    padding: 20,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.34,
+    shadowRadius: 6.27,
+    elevation: 5,
+    zIndex: 100,
+  },
+  panelStyle: {
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sliderStyle: {
+    borderRadius: 20,
+
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+
+    elevation: 5,
+  },
+  sliderVerticalStyle: {
+    borderRadius: 20,
+    height: 300,
+
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  previewStyle: {
+    height: 40,
+    borderRadius: 14,
+  },
+  previewTxt: {
+    color: '#707070',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
   },
 });

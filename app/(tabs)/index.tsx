@@ -71,6 +71,7 @@ export default function HomeScreen() {
               originalRemark: item.remark,
               originalTitle: item.title,
               originalIcon: item.icon,
+              originalColor: item.color,
               originalDate: item.date.toString(),
               id: item.id,
             },
@@ -88,11 +89,7 @@ export default function HomeScreen() {
             }}
           />
         )}
-        <Ionicons
-          name={item.icon as any}
-          size={20}
-          color={Colors[theme].icon}
-        />
+        <Ionicons name={item.icon as any} size={20} color={item.color} />
         <View style={{ justifyContent: 'center' }}>
           <ThemedText type="defaultSemiBold">{item.title}</ThemedText>
           {item.remark && <ThemedText type="remark">{item.remark}</ThemedText>}

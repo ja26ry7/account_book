@@ -1,12 +1,13 @@
 import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
-import { Modal, Platform, Pressable, Text, View } from 'react-native';
+import { Alert, Modal, Platform, Pressable, Text, View } from 'react-native';
 
 import { HapticTab } from '../../components/HapticTab';
 import { IconSymbol } from '../../components/ui/IconSymbol';
 import { Colors } from '../../constants/Colors';
 
 import { ThemedText } from '@/components/ThemedText';
+import { deleteDB } from '@/db/db';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAppContext } from '../AppProvider';
 
@@ -27,6 +28,20 @@ export default function TabLayout() {
       label: '設定',
       value: 'settings-outline',
       onPress: () => router.push('/setting'),
+    },
+    {
+      label: '清除資料',
+      value: 'trash',
+      onPress: () => {
+        Alert.alert('清除資料', '確認要重置及清除所有資料？', [
+          { text: '取消', style: 'cancel' },
+          {
+            text: '刪除',
+            onPress: () => deleteDB(),
+            style: 'destructive',
+          },
+        ]);
+      },
     },
   ];
 

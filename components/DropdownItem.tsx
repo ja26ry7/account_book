@@ -10,6 +10,7 @@ import { ThemedView } from './ThemedView';
 export type Option = {
   label: string;
   value: keyof typeof Ionicons.glyphMap | undefined;
+  color: string;
 };
 
 type Props = {
@@ -19,22 +20,19 @@ type Props = {
 };
 
 export const DropdownItem = ({
-  data = [{ label: '', value: 'link' }],
-  icon = { label: '', value: 'link' },
+  data = [{ label: '', value: 'link', color: '' }],
+  icon = { label: '', value: 'link', color: '' },
   setIcon,
 }: Props) => {
   const { theme } = useAppContext();
-  const renderItem = (item: {
-    label: string;
-    value: keyof typeof Ionicons.glyphMap;
-  }) => {
+  const renderItem = (item: Option) => {
     return (
       <ThemedView
         style={[styles.item, { backgroundColor: Colors[theme].cardBackground }]}
       >
         <Ionicons
           style={styles.icon}
-          color={Colors[theme].icon}
+          color={item.color}
           name={item.value}
           size={20}
         />
@@ -74,12 +72,13 @@ export const DropdownItem = ({
       searchPlaceholder="搜尋..."
       value={icon}
       onChange={(item) => {
+        console.log(item);
         setIcon(item);
       }}
       renderLeftIcon={() => (
         <Ionicons
           style={styles.icon}
-          color={Colors[theme].icon}
+          color={icon.color ? icon.color : Colors[theme].icon}
           name={icon.value}
           size={20}
         />
