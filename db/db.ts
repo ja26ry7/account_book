@@ -20,18 +20,12 @@ export const initDB = async () => {
     );
   `);
 
-    // 檢查 color 欄位是否存在，再決定是否加欄位
-    try {
-        await (await db).runAsync(`
-          ALTER TABLE transactions ADD COLUMN color TEXT;
-        `);
-        console.log('Column "color" added to icons table.');
-    } catch (e) {
-        console.log(e)
-    }
+
 };
 
 export const deleteDB = async () => {
+    await (await db).runAsync(`DROP TABLE IF EXISTS transactions`);
+    await (await db).runAsync(`DROP TABLE IF EXISTS icons`);
     await (await db).execAsync(`
         DELETE FROM transactions;
         DELETE FROM sqlite_sequence WHERE name='transactions';
@@ -238,6 +232,47 @@ export const getStateisticsByCategory = async ({ type, range }: { type: 'income'
       GROUP BY t.icon, i.label
       ORDER BY amount DESC
     `, params);
+
+    return result;
+}
+
+export const getChartData = async ({ type, groupBy, count }: { type: 'income' | 'expense', groupBy: 'day' | 'week' | 'month' | 'year', count: number }) => {
+    const dbInstance = await db;
+
+    let strftimeFormat = '';
+    let whereClause = 't.type = ? AND ';
+    switch (groupBy) {
+        case 'day':
+            strftimeFormat = '%m/%d';
+            whereClause += `t.date >= DATE('now','${1 - count} days')`
+            break;
+        case 'week':
+            strftimeFormat = 'W%W';
+            whereClause += `t.date >= DATE('now','${1 - count * 7} days')`
+            break;
+        case 'month':
+            strftimeFormat = '%m';
+            whereClause += `t.date >= DATE('now','start of month', '${1 - count} months')`
+            break;
+        case 'year':
+            strftimeFormat = '%Y';
+            whereClause += `t.date >= DATE('now', 'start of year', '${1 - count} years')`
+            break;
+    }
+
+    const result = await dbInstance.getAllAsync<{
+        period: string;
+        total: number;
+    }>(`
+        SELECT 
+          strftime('${strftimeFormat}', t.date) AS period,
+          SUM(t.amount) AS total
+        FROM transactions t
+        WHERE ${whereClause}
+        GROUP BY strftime('${strftimeFormat}', t.date)
+        ORDER BY DATE(t.date) DESC
+        LIMIT ${count};
+      `, [type, groupBy]);
 
     return result;
 }

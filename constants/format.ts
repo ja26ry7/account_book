@@ -1,6 +1,11 @@
-export const toCurrency = (amountStr: string | number | string[] | null, separators = ',', trimZero = true) => {
+export const toCurrency = (
+    amountStr: string | number | string[] | null,
+    separators = ',',
+    trimZero = true
+): string => {
     const parsed = Number(amountStr ?? '');
-    if (isNaN(parsed) || amountStr === null) return amountStr;
+    if (isNaN(parsed) || amountStr === null) return '';
+
     if (typeof amountStr !== 'string') amountStr = amountStr.toString();
     if (amountStr[0] === '0') amountStr = amountStr.replace(/^0+(?=\d)/g, '');
 
@@ -13,6 +18,7 @@ export const toCurrency = (amountStr: string | number | string[] | null, separat
         if (tmp[1]) amountStr = tmp.join('.');
         else amountStr = tmp[0];
     }
+
     return amountStr;
 };
 

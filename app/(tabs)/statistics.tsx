@@ -12,7 +12,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { useAppContext } from '../AppProvider';
 
-const EditTransaction = () => {
+const Statistics = () => {
   const { theme } = useAppContext();
 
   const [type, setType] = useState<'income' | 'expense'>('expense');
@@ -191,4 +191,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditTransaction;
+export default Statistics;

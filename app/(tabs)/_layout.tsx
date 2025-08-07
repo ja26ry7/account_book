@@ -184,6 +184,20 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="trend"
+        options={{
+          title: '趨勢',
+          headerTitle: '趨勢',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              size={28}
+              name="chart.line.uptrend.xyaxis"
+              color={color}
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
